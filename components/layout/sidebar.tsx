@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, Users, TrendingUp, FileText, Bell, LogOut, Menu, X, LogOut as Logo } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -15,21 +16,42 @@ const navigation = [
   { name: "Notifications", href: "/notifications", icon: Bell },
 ]
 
-interface SidebarProps {
-  userRole?: string
+interface User {
+  id: string
+  email: string
+  name: string
+  prefs?: Record<string, any>
+  role?: 'admin' | 'client'
 }
 
-export function Sidebar({ userRole = "client" }: SidebarProps) {
+interface SidebarProps {
+  user: User
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { logout } = useAuth()
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/auth/login")
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push("/auth/login")
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Still redirect even if logout fails
+      router.push("/auth/login")
+    }
   }
 
-  const filteredNavigation = navigation.filter((item) => !item.adminOnly || userRole === "admin")
+  // Filter navigation based on user role
+  const filteredNavigation = navigation.filter((item) => {
+    if (item.adminOnly && user.role !== 'admin') {
+      return false;
+    }
+    return true;
+  })
 
   return (
     <>
@@ -84,8 +106,15 @@ export function Sidebar({ userRole = "client" }: SidebarProps) {
             })}
           </nav>
 
-          {/* Logout */}
-          <div className="p-4 border-t border-border">
+          {/* User Info and Logout */}
+          <div className="p-4 border-t border-border space-y-3">
+            {/* User Info */}
+            <div className="px-3 py-2">
+              <p className="text-sm font-medium text-foreground">{user.name || user.email}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </div>
+            
+            {/* Logout */}
             <Button
               variant="ghost"
               onClick={handleLogout}

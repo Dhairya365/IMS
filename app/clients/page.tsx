@@ -8,13 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Search, Plus } from "lucide-react"
 import { useState } from "react"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { RoleGuard } from "@/components/auth/RoleGuard"
 
 export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute>
+      <RoleGuard allowedRoles={['admin']}>
+        <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -87,5 +91,7 @@ export default function ClientsPage() {
         <AddClientDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
       </div>
     </DashboardLayout>
+      </RoleGuard>
+    </ProtectedRoute>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { InvestmentsTable } from "@/components/investments/investments-table"
+import { InvestmentsTableComprehensive } from "@/components/investments/investments-table-comprehensive"
 import { AddInvestmentDialog } from "@/components/investments/add-investment-dialog"
 import { PortfolioSummary } from "@/components/investments/portfolio-summary"
 import { Button } from "@/components/ui/button"
@@ -9,15 +9,18 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingUp, Search, Plus, Filter } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 
 export default function InvestmentsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const tableRefreshRef = useRef<(() => void) | null>(null)
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -63,23 +66,39 @@ export default function InvestmentsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="equity">Equity</SelectItem>
+                  <SelectItem value="demat">Demat Account</SelectItem>
+                  <SelectItem value="debt">Debt Securities</SelectItem>
                   <SelectItem value="fixed_deposit">Fixed Deposit</SelectItem>
                   <SelectItem value="mutual_fund">Mutual Fund</SelectItem>
-                  <SelectItem value="bond">Bonds</SelectItem>
-                  <SelectItem value="gold">Gold</SelectItem>
                   <SelectItem value="ppf">PPF</SelectItem>
-                  <SelectItem value="nsc">NSC</SelectItem>
+                  <SelectItem value="nsc">NSC/NSS</SelectItem>
                   <SelectItem value="nps">NPS</SelectItem>
+                  <SelectItem value="bullion">Bullion</SelectItem>
+                  <SelectItem value="real_estate">Real Estate</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <InvestmentsTable searchTerm={searchTerm} filterType={filterType} />
+            <InvestmentsTableComprehensive 
+              searchTerm={searchTerm} 
+              filterType={filterType} 
+              onRefresh={tableRefreshRef}
+            />
           </CardContent>
         </Card>
 
-        <AddInvestmentDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+        <AddInvestmentDialog 
+          open={isAddDialogOpen} 
+          onOpenChange={setIsAddDialogOpen}
+          onSuccess={() => {
+            // Refresh the table after successful investment creation
+            if (tableRefreshRef.current) {
+              tableRefreshRef.current();
+            }
+          }}
+        />
       </div>
     </DashboardLayout>
+    </ProtectedRoute>
   )
 }

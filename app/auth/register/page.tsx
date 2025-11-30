@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, TrendingUp } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -20,38 +21,36 @@ export default function RegisterPage() {
     confirmPassword: "",
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { register, loading, user } = useAuth()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      router.push("/dashboard")
+    }
+  }, [user, loading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
-      setIsLoading(false)
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
       return
     }
 
     try {
-      // Simulate API call - replace with actual Appwrite authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          role: "client",
-        }),
-      )
+      await register(formData.email, formData.password, formData.name)
       router.push("/dashboard")
-    } catch (err) {
-      setError("Registration failed. Please try again.")
-    } finally {
-      setIsLoading(false)
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Please try again.")
     }
   }
 
@@ -159,8 +158,8 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create account"}
+              <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+                {loading ? "Creating account..." : "Create account"}
               </Button>
             </form>
 

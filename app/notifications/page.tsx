@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Bell, Settings, BarChart3, CheckCheck } from "lucide-react"
 import { useState } from "react"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 
 export default function NotificationsPage() {
   const [unreadCount, setUnreadCount] = useState(5)
@@ -18,7 +19,8 @@ export default function NotificationsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -85,5 +87,6 @@ export default function NotificationsPage() {
         </Tabs>
       </div>
     </DashboardLayout>
+    </ProtectedRoute>
   )
 }

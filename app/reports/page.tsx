@@ -8,10 +8,12 @@ import { ExportReports } from "@/components/reports/export-reports"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FileText, TrendingUp, History, Download } from "lucide-react"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 
 export default function ReportsPage() {
   return (
-    <DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -71,5 +73,6 @@ export default function ReportsPage() {
         </Tabs>
       </div>
     </DashboardLayout>
+    </ProtectedRoute>
   )
 }

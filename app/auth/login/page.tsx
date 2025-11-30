@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,51 +11,32 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, TrendingUp } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { login, loading, user } = useAuth()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      router.push("/dashboard")
+    }
+  }, [user, loading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
 
     try {
-      // Simulate API call - replace with actual Appwrite authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      if (email === "admin@investpro.com" && password === "admin123") {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: "Admin User",
-            role: "admin",
-          }),
-        )
-        router.push("/dashboard")
-      } else if (email === "client@investpro.com" && password === "client123") {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: "Client User",
-            role: "client",
-          }),
-        )
-        router.push("/dashboard")
-      } else {
-        setError("Invalid credentials. Try admin@investpro.com/admin123 or client@investpro.com/client123")
-      }
-    } catch (err) {
-      setError("Login failed. Please try again.")
-    } finally {
-      setIsLoading(false)
+      await login(email, password)
+      router.push("/dashboard")
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.")
     }
   }
 
@@ -126,8 +107,8 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign in"}
+              <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
@@ -141,9 +122,9 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
-              <p className="text-xs text-muted-foreground mb-2">Demo Credentials:</p>
-              <p className="text-xs font-mono">Admin: admin@investpro.com / admin123</p>
-              <p className="text-xs font-mono">Client: client@investpro.com / client123</p>
+              <p className="text-xs text-muted-foreground mb-2">Note:</p>
+              <p className="text-xs">Please use your Appwrite account credentials to sign in.</p>
+              <p className="text-xs">Make sure your Appwrite project is configured correctly.</p>
             </div>
           </CardContent>
         </Card>
